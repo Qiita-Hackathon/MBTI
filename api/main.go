@@ -104,6 +104,8 @@ func main() {
 
 	r.POST("/api/auth/register", uHandler.RegisterUser)
 
+	r.POST("/api/auth/login", uHandler.LoginUser)
+
 	// ユーザIDに対応するURLパラメータ
 
 	// サーバーを起動
