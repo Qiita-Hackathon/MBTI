@@ -13,13 +13,16 @@ import (
 )
 
 type User struct {
-	ID          int    `gorm:"primaryKey;not null" json:"id" `
-	UserName    string `gorm:"type:varchar(255); not null; unique" json:"user_name"`
-	DisplayName string `gorm:"type:varchar(255);not null" json:"display_name"`
-	Email       string `gorm:"type:varchar(255);not null; unique" json:"email"`
-	Password    string `gorm:"type:varchar(255);not null" json:"password"`
-	Description string `gorm:"type:varchar(255);" json:"description"`
-	IconPath    string `gorm:"type:varchar(255);" json:"icon_path"`
+	ID               uint   `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserName         string `gorm:"type:varchar(255);not null;unique" json:"user_name"`
+	Email            string `gorm:"type:varchar(255);not null;unique" json:"email"`
+	Password         string `gorm:"type:varchar(255);not null" json:"password"`
+	Age              int    `gorm:"not null" json:"age"`
+	Gender           int    `gorm:"not null" json:"gender"`
+	Occupation       string `gorm:"type:varchar(255);" json:"occupation"`
+	SelfIntroduction string `gorm:"type:varchar(255);" json:"self_introduction"`
+	IconPath         string `gorm:"type:varchar(255);" json:"icon_path"`
+	Mbti             int    `gorm:"not null" json:"mbti"`
 }
 
 type Handler struct {

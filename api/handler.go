@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"crypto/rand"
@@ -12,23 +13,25 @@ import (
 )
 
 type RegisterRequest struct {
-	UserName    string `json:"user_name" binding:"required"`
-	DisplayName string `json:"display_name" binding:"required"`
-	Email       string `json:"email" binding:"required,email"`
-	Password    string `json:"password" binding:"required"`
+	UserName         string `json:"user_name" binding:"required"`
+	Email            string `json:"email" binding:"required"`
+	Password         string `json:"password" binding:"required"`
+	Age              int    `json:"age" binding:"required"`
+	Gender           int    `json:"gender" binding:"required"`
+	Occupation       string `json:"occupation" binding:"required"`
+	SelfIntroduction string `json:"self_introduction" binding:"required"`
 }
 
 type AccessToken struct {
-	ID         int       `gorm:"primaryKey;autoIncrement"`
+	ID         int       `json:"userId"`
 	Token      string    `gorm:"type:varchar(255);not null;unique"`
-	UserID     int       `gorm:"not null"`
+	UserID     uint      `gorm:"not null"`
 	ExpiryDate time.Time `gorm:"not null"`
 }
 
 type RegisterResponse struct {
-	UserID   int    `json:"userId"`
-	UserName string `json:"userName"`
-	Token    string `json:"token"`
+	UserID string `json:"userId"`
+	Token  string `json:"token"`
 }
 
 // ここからユーザ登録に関連するメソッド等の処理実装
@@ -61,10 +64,13 @@ func (h *Handler) RegisterUser(c *gin.Context) {
 	// データベースにユーザー情報を保存
 	// Userインスタンスの生成
 	user := User{
-		UserName:    req.UserName,
-		DisplayName: req.DisplayName,
-		Email:       req.Email,
-		Password:    hashedpw, // l:53でハッシュ化したPWを格納
+		UserName:         req.UserName,
+		Email:            req.Email,
+		Password:         hashedpw, // l:53でハッシュ化したPWを格納
+		Age:              req.Age,
+		Gender:           req.Gender,
+		Occupation:       req.Occupation,
+		SelfIntroduction: req.SelfIntroduction,
 	}
 
 	// DBにユーザ情報を保存
@@ -96,9 +102,8 @@ func (h *Handler) RegisterUser(c *gin.Context) {
 
 	// 成功した場合のレスポンス
 	c.SecureJSON(http.StatusOK, RegisterResponse{
-		UserID:   user.ID,
-		UserName: req.UserName,
-		Token:    token,
+		UserID: strconv.FormatUint(uint64(user.ID), 10), // uintからstringへの変換
+		Token:  token,
 	})
 }
 
