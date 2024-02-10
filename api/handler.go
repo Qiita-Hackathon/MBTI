@@ -111,27 +111,6 @@ func (h *Handler) RegisterUser(c *gin.Context) {
 	})
 }
 
-// ユーザプロフィール取得関数
-func (uh *Handler) GetUser(c *gin.Context) {
-	username := c.Param("username")
-
-	var user User
-	res := uh.db.Where("user_name = ?", username).First(&user)
-
-	if res.Error != nil {
-		c.AbortWithStatus(404)
-		return
-	}
-	c.SecureJSON(http.StatusOK, gin.H{
-		"userId":      user.ID,
-		"userName":    user.UserName,
-		"displayName": user.DisplayName,
-		"description": user.Description,
-		"icon_path":   user.IconPath,
-	})
-
-}
-
 // パラメータを利用してDBからユーザ情報を取得する関数
 
 // 【セキュリティの問題からこのAPIは提供するべきではない。】
