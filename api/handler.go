@@ -20,6 +20,8 @@ type RegisterRequest struct {
 	Gender           int    `json:"gender" binding:"required"`
 	Occupation       string `json:"occupation" binding:"required"`
 	SelfIntroduction string `json:"self_introduction" binding:"required"`
+	IconPath         string `gorm:"type:varchar(255);" json:"icon_path"`
+	Mbti             int    `gorm:"not null" json:"mbti"`
 }
 
 type AccessToken struct {
@@ -71,6 +73,8 @@ func (h *Handler) RegisterUser(c *gin.Context) {
 		Gender:           req.Gender,
 		Occupation:       req.Occupation,
 		SelfIntroduction: req.SelfIntroduction,
+		IconPath:         req.IconPath,
+		Mbti:             req.Mbti,
 	}
 
 	// DBにユーザ情報を保存
