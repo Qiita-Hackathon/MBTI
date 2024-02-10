@@ -24,14 +24,14 @@ const Home: FC = () => {
 	return (
 		<Layout>
 			{mock_data.map((item, index) => (
-				<Box key={index} p={3}>
+				<Box key={`${index}-${item.userName}`} p={3}>
 					<Heading size="lg">{item.userName}</Heading>
 					<Text>MBTI: {item.mbti}</Text>
 					<Box>
 						<Text size="1rem">
 							タグ:{" "}
 							{item.tags.map((e, i) => (
-								<Box as="span" key={i} px={2}>
+								<Box as="span" key={`${i}-${e}`} px={2}>
 									{e}
 								</Box>
 							))}
