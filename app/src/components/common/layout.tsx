@@ -41,7 +41,7 @@ export const Layout: FC<LayoutProps> = ({ children }) => {
 				<IconButton size="lg" icon={<CiSettings />} />
 				<IconButton size="lg" icon={<IoMdLogOut />} />
 			</VStack>
-			<Box pt={"81px"} pl={"60px"}>
+			<Box pt={"81px"} pl={"60px"} height={"100vh"} overflowY={"scroll"}>
 				{children}
 			</Box>
 		</>
