@@ -2,33 +2,38 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type RegisterRequest struct {
-	UserName    string `json:"user_name" binding:"required"`
-	DisplayName string `json:"display_name" binding:"required"`
-	Email       string `json:"email" binding:"required,email"`
-	Password    string `json:"password" binding:"required"`
+	UserName         string `json:"userName" binding:"required"`
+	Email            string `json:"email" binding:"required"`
+	Password         string `json:"password" binding:"required"`
+	Age              int    `json:"age" binding:"required"`
+	Gender           int    `json:"gender" binding:"required"`
+	Occupation       string `json:"occupation" binding:"required"`
+	SelfIntroduction string `json:"selfIntroduction" binding:"required"`
+	IconPath         string `gorm:"type:varchar(255);" json:"iconPath"`
+	Mbti             int    `gorm:"not null" json:"mbti"`
 }
 
 type AccessToken struct {
-	ID         int       `gorm:"primaryKey;autoIncrement"`
+	ID         int       `json:"userId"`
 	Token      string    `gorm:"type:varchar(255);not null;unique"`
-	UserID     int       `gorm:"not null"`
+	UserID     uint      `gorm:"not null"`
 	ExpiryDate time.Time `gorm:"not null"`
 }
 
 type RegisterResponse struct {
-	UserID   int    `json:"userId"`
-	UserName string `json:"userName"`
-	Token    string `json:"token"`
+	UserID string `json:"userId"`
+	Token  string `json:"token"`
 }
 
 // ここからユーザ登録に関連するメソッド等の処理実装
@@ -41,13 +46,15 @@ func generateToken() (string, error) {
 }
 
 func hashPW(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	return string(bytes), err
+	hash := sha256.Sum256([]byte(password))
+	hashStr := hex.EncodeToString(hash[:])
+	return hashStr, nil
 }
 
 func (h *Handler) RegisterUser(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.BindJSON(&req); err != nil {
+		println(err)
 		c.SecureJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -61,10 +68,15 @@ func (h *Handler) RegisterUser(c *gin.Context) {
 	// データベースにユーザー情報を保存
 	// Userインスタンスの生成
 	user := User{
-		UserName:    req.UserName,
-		DisplayName: req.DisplayName,
-		Email:       req.Email,
-		Password:    hashedpw, // l:53でハッシュ化したPWを格納
+		UserName:         req.UserName,
+		Email:            req.Email,
+		Password:         hashedpw, // l:53でハッシュ化したPWを格納
+		Age:              req.Age,
+		Gender:           req.Gender,
+		Occupation:       req.Occupation,
+		SelfIntroduction: req.SelfIntroduction,
+		IconPath:         req.IconPath,
+		Mbti:             req.Mbti,
 	}
 
 	// DBにユーザ情報を保存
@@ -81,7 +93,7 @@ func (h *Handler) RegisterUser(c *gin.Context) {
 		return
 	}
 
-	// トークンの有効期限を設定(1週間)
+	// トークンの有効期限を設定(1ヶ月)
 	expiryDate := time.Now().AddDate(0, 1, 0)
 
 	// トークンをaccess_tokenテーブルに保存
@@ -96,31 +108,9 @@ func (h *Handler) RegisterUser(c *gin.Context) {
 
 	// 成功した場合のレスポンス
 	c.SecureJSON(http.StatusOK, RegisterResponse{
-		UserID:   user.ID,
-		UserName: req.UserName,
-		Token:    token,
+		UserID: strconv.FormatUint(uint64(user.ID), 10), // uintからstringへの変換
+		Token:  token,
 	})
-}
-
-// ユーザプロフィール取得関数
-func (uh *Handler) GetUser(c *gin.Context) {
-	username := c.Param("username")
-
-	var user User
-	res := uh.db.Where("user_name = ?", username).First(&user)
-
-	if res.Error != nil {
-		c.AbortWithStatus(404)
-		return
-	}
-	c.SecureJSON(http.StatusOK, gin.H{
-		"userId":      user.ID,
-		"userName":    user.UserName,
-		"displayName": user.DisplayName,
-		"description": user.Description,
-		"icon_path":   user.IconPath,
-	})
-
 }
 
 // パラメータを利用してDBからユーザ情報を取得する関数

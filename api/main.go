@@ -13,13 +13,16 @@ import (
 )
 
 type User struct {
-	ID          int    `gorm:"primaryKey;not null" json:"id" `
-	UserName    string `gorm:"type:varchar(255); not null; unique" json:"user_name"`
-	DisplayName string `gorm:"type:varchar(255);not null" json:"display_name"`
-	Email       string `gorm:"type:varchar(255);not null; unique" json:"email"`
-	Password    string `gorm:"type:varchar(255);not null" json:"password"`
-	Description string `gorm:"type:varchar(255);" json:"description"`
-	IconPath    string `gorm:"type:varchar(255);" json:"icon_path"`
+	ID               uint   `gorm:"column:user_id;primaryKey;autoIncrement" json:"id"`
+	UserName         string `gorm:"column:user_name;type:varchar(255);not null;unique" json:"userName"`
+	Email            string `gorm:"column:email;type:varchar(255);not null;unique" json:"email"`
+	Password         string `gorm:"column:password;type:varchar(255);not null" json:"password"`
+	Age              int    `gorm:"column:age;not null" json:"age"`
+	Gender           int    `gorm:"column:gender;not null" json:"gender"`
+	Occupation       string `gorm:"column:occupation;type:varchar(255)" json:"occupation"`
+	SelfIntroduction string `gorm:"column:self_introduction;type:varchar(255)" json:"selfIntroduction"`
+	IconPath         string `gorm:"column:icon_path;type:varchar(255)" json:"iconPath"`
+	Mbti             int    `gorm:"column:mbti;not null" json:"mbti"`
 }
 
 type Handler struct {
@@ -100,8 +103,6 @@ func main() {
 	uHandler := newHandler(db)
 
 	r.POST("/api/auth/register", uHandler.RegisterUser)
-
-	r.GET("/api/users/:username/profile", uHandler.GetUser)
 
 	// ユーザIDに対応するURLパラメータ
 
