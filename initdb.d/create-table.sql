@@ -4,7 +4,7 @@ SET CHARACTER SET utf8mb4;
 -- ユーザーテーブル
 create table users (
     user_id int auto_increment primary key, -- id（主キー）
-    user_name varchar(255) not null unique, -- ユーザー名（一意キーにしても良い）
+    user_name varchar(255) not null, -- ユーザー名（一意キーにしても良い）
     email varchar(255) not null unique, -- メールアドレス（同じく一意キーにしても良い）
     password varchar(255) not null, -- パスワード（ハッシュ化してもそのままでも良し）
     age int not null,
@@ -18,10 +18,10 @@ create table users (
 -- ユーザーの初期データ追加
 insert into users (user_name, email, password, age, gender, mbti) values
 ('Yusuke', 'tanaka@email.com', SHA2('password', 256), 25, 1, 1),
-('toku', 'tanaka@email.com', SHA2('password', 256), 25, 1, 1),
-('Umi',  'tanaka@email.com', SHA2('password', 256), 25, 1, 0),
-('Lucky', 'tanaka@email.com', SHA2('password', 256), 25, 1, 0),
-('Kazuki', 'tanaka@email.com', SHA2('password', 256), 25, 1, 1);
+('toku', 'takeda@email.com', SHA2('password', 256), 25, 1, 1),
+('Umi',  'satou@email.com', SHA2('password', 256), 25, 1, 0),
+('Lucky', 'asou@email.com', SHA2('password', 256), 25, 1, 0),
+('Kazuki', 'minami@email.com', SHA2('password', 256), 25, 1, 1);
 
 -- アクセストークンの管理テーブル
 CREATE TABLE access_tokens (
