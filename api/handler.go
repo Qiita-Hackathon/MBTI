@@ -13,14 +13,14 @@ import (
 )
 
 type RegisterRequest struct {
-	UserName         string `json:"user_name" binding:"required"`
+	UserName         string `json:"userName" binding:"required"`
 	Email            string `json:"email" binding:"required"`
 	Password         string `json:"password" binding:"required"`
 	Age              int    `json:"age" binding:"required"`
 	Gender           int    `json:"gender" binding:"required"`
 	Occupation       string `json:"occupation" binding:"required"`
-	SelfIntroduction string `json:"self_introduction" binding:"required"`
-	IconPath         string `gorm:"type:varchar(255);" json:"icon_path"`
+	SelfIntroduction string `json:"selfIntroduction" binding:"required"`
+	IconPath         string `gorm:"type:varchar(255);" json:"iconPath"`
 	Mbti             int    `gorm:"not null" json:"mbti"`
 }
 

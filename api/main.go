@@ -13,16 +13,16 @@ import (
 )
 
 type User struct {
-	ID               uint   `gorm:"primaryKey;autoIncrement" json:"id"`
-	UserName         string `gorm:"type:varchar(255);not null;unique" json:"user_name"`
-	Email            string `gorm:"type:varchar(255);not null;unique" json:"email"`
-	Password         string `gorm:"type:varchar(255);not null" json:"password"`
-	Age              int    `gorm:"not null" json:"age"`
-	Gender           int    `gorm:"not null" json:"gender"`
-	Occupation       string `gorm:"type:varchar(255);" json:"occupation"`
-	SelfIntroduction string `gorm:"type:varchar(255);" json:"self_introduction"`
-	IconPath         string `gorm:"type:varchar(255);" json:"icon_path"`
-	Mbti             int    `gorm:"not null" json:"mbti"`
+	ID               uint   `gorm:"column:user_id;primaryKey;autoIncrement" json:"id"`
+	UserName         string `gorm:"column:user_name;type:varchar(255);not null;unique" json:"userName"`
+	Email            string `gorm:"column:email;type:varchar(255);not null;unique" json:"email"`
+	Password         string `gorm:"column:password;type:varchar(255);not null" json:"password"`
+	Age              int    `gorm:"column:age;not null" json:"age"`
+	Gender           int    `gorm:"column:gender;not null" json:"gender"`
+	Occupation       string `gorm:"column:occupation;type:varchar(255)" json:"occupation"`
+	SelfIntroduction string `gorm:"column:self_introduction;type:varchar(255)" json:"selfIntroduction"`
+	IconPath         string `gorm:"column:icon_path;type:varchar(255)" json:"iconPath"`
+	Mbti             int    `gorm:"column:mbti;not null" json:"mbti"`
 }
 
 type Handler struct {
