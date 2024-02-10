@@ -11,8 +11,8 @@ create table users (
     gender int not null,
     occupation varchar(255) default '',
     self_introduction varchar(255) default '',
-    icon_path varchar(255) default '' -- アイコン画像のパス
-    mbti int not null,
+    icon_path varchar(255) default '', -- アイコン画像のパス
+    mbti int not null
 );
 
 -- ユーザーの初期データ追加
@@ -29,7 +29,7 @@ CREATE TABLE access_tokens (
     token VARCHAR(255) NOT NULL,
     user_id INT NOT NULL,
     expiry_date DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
 -- 投稿の管理テーブル
@@ -43,7 +43,7 @@ CREATE TABLE posts (
     reply_count INT DEFAULT 0,
     created_at DATETIME NOT NULL,
     is_deleted BOOLEAN NOT NULL DEFAULT 0,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
 -- いいねの管理テーブル
@@ -52,7 +52,7 @@ CREATE TABLE likes (
     user_id INT NOT NULL,
     post_id INT NOT NULL,
     created_at DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (post_id) REFERENCES posts(post_id)
 );
 
@@ -62,7 +62,7 @@ CREATE TABLE reposts (
     user_id INT NOT NULL,
     post_id INT NOT NULL,
     created_at DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (post_id) REFERENCES posts(post_id)
 );
 
@@ -74,7 +74,7 @@ CREATE TABLE replies (
     parent_reply_id INT, -- 親リプライのID
     reply_text TEXT NOT NULL,
     created_at DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (post_id) REFERENCES posts(post_id),
     FOREIGN KEY (parent_reply_id) REFERENCES replies(reply_id)
 );
