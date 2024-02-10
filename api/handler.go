@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type RegisterRequest struct {
@@ -46,13 +46,15 @@ func generateToken() (string, error) {
 }
 
 func hashPW(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	return string(bytes), err
+	hash := sha256.Sum256([]byte(password))
+	hashStr := hex.EncodeToString(hash[:])
+	return hashStr, nil
 }
 
 func (h *Handler) RegisterUser(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.BindJSON(&req); err != nil {
+		println(err)
 		c.SecureJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -91,7 +93,7 @@ func (h *Handler) RegisterUser(c *gin.Context) {
 		return
 	}
 
-	// トークンの有効期限を設定(1週間)
+	// トークンの有効期限を設定(1ヶ月)
 	expiryDate := time.Now().AddDate(0, 1, 0)
 
 	// トークンをaccess_tokenテーブルに保存
