@@ -1,0 +1,27 @@
+{
+  "name": "next-go-dev",
+  "version": "1.0.0",
+  "description": "プリコミット実行用の`package.json`",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "biome:format": "npx biome format --write ./app",
+    "biome:lint": "npx biome lint --apply ./app",
+    "prepare": "npx husky install"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@biomejs/biome": "1.5.2",
+    "git-hooks": "^1.1.10",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "npx biome lint --apply ./app",
+      "npx biome format --write ./app"
+    ]
+  }
+}
