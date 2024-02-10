@@ -13,6 +13,7 @@ import (
 )
 
 type RegisterRequest struct {
+	ID               uint   `json:"id"`
 	UserName         string `json:"userName" binding:"required"`
 	Email            string `json:"email" binding:"required"`
 	Password         string `json:"password" binding:"required"`
@@ -25,14 +26,26 @@ type RegisterRequest struct {
 }
 
 type AccessToken struct {
-	ID         int       `json:"userId"`
+	TokenID    int       `gorm:"primaryKey;autoIncrement" json:"tokenId"`
 	Token      string    `gorm:"type:varchar(255);not null;unique"`
-	UserID     uint      `gorm:"not null"`
-	ExpiryDate time.Time `gorm:"not null"`
+	UserID     uint      `gorm:"not null" json:"userId"`
+	ExpiryDate time.Time `gorm:"not null" json:"expiryDate"`
 }
 
 type RegisterResponse struct {
 	UserID string `json:"userId"`
+	Token  string `json:"token"`
+}
+
+// Userの認証情報を表す構造体
+type LoginRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+}
+
+// ログイン成功時のレスポンスを表す構造体
+type LoginResponse struct {
+	UserId string `json:"userId"`
 	Token  string `json:"token"`
 }
 
@@ -68,6 +81,7 @@ func (h *Handler) RegisterUser(c *gin.Context) {
 	// データベースにユーザー情報を保存
 	// Userインスタンスの生成
 	user := User{
+		ID:               req.ID,
 		UserName:         req.UserName,
 		Email:            req.Email,
 		Password:         hashedpw, // l:53でハッシュ化したPWを格納
@@ -93,22 +107,81 @@ func (h *Handler) RegisterUser(c *gin.Context) {
 		return
 	}
 
-	// トークンの有効期限を設定(1ヶ月)
-	expiryDate := time.Now().AddDate(0, 1, 0)
+	// // トークンの有効期限を設定(1ヶ月)、長いので2時間にした
+	// expiryDate := time.Now().AddDate(0, 1, 0)
+	// トークンの有効期限を設定(2時間)
+	expiryDate := time.Now().Add(2 * time.Hour)
 
 	// トークンをaccess_tokenテーブルに保存
-	accessToken := AccessToken{
+	access_token := AccessToken{
 		UserID:     user.ID,
 		Token:      token,
 		ExpiryDate: expiryDate,
 	}
-	if err := h.db.Create(&accessToken).Error; err != nil {
+	if err := h.db.Create(&access_token).Error; err != nil {
 		c.SecureJSON(http.StatusInternalServerError, gin.H{"error": "トークンの保存に失敗しました。"})
 	}
 
 	// 成功した場合のレスポンス
 	c.SecureJSON(http.StatusOK, RegisterResponse{
 		UserID: strconv.FormatUint(uint64(user.ID), 10), // uintからstringへの変換
+		Token:  token,
+	})
+}
+
+// ログイン関連の関数
+func (h *Handler) findUserByEmail(email string) (*User, error) {
+	var user User
+	result := h.db.Where("email = ?", email).First(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &user, nil
+}
+
+func (h *Handler) LoginUser(c *gin.Context) {
+	var req LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.SecureJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// データベースからユーザー情報を取得
+	user, err := h.findUserByEmail(req.Email)
+	if err != nil {
+		c.SecureJSON(http.StatusUnauthorized, gin.H{"error": "認証情報が無効です"})
+		return
+	}
+
+	// パスワードのハッシュ値を比較
+	hashedInputPW, _ := hashPW(req.Password)
+	if user.Password != hashedInputPW {
+		c.SecureJSON(http.StatusUnauthorized, gin.H{"error": "認証情報が無効です"})
+		return
+	}
+
+	// トークンの生成と返却
+	token, err := generateToken()
+	if err != nil {
+		c.SecureJSON(http.StatusInternalServerError, gin.H{"error": "トークンの生成に失敗しました"})
+		return
+	}
+
+	// トークンの有効期限を設定
+	expiryDate := time.Now().Add(2 * time.Hour)
+
+	// アクセストークンをデータベースに保存;一応通すように実装したけど保持しなくてもいいらしい(*内部で解決するので)
+	accessToken := AccessToken{
+		UserID:     user.ID,
+		Token:      token,
+		ExpiryDate: expiryDate,
+	}
+	if err := h.db.Create(&accessToken).Error; err != nil {
+		c.SecureJSON(http.StatusInternalServerError, gin.H{"error": "トークンの保存に失敗しました"})
+		return
+	}
+	c.SecureJSON(http.StatusOK, LoginResponse{
+		UserId: strconv.Itoa(int(user.ID)), // uintからstringへの変換
 		Token:  token,
 	})
 }
