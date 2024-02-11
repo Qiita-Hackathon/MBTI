@@ -123,12 +123,12 @@ func main() {
 		//userid -- category_tag
 		var tags []common.CategoryTag
 
-		 db.Model(&common.UserCategoryTag{}).
-			 Joins("JOIN category_tags ON user_category_tags.tag_id = category_tags.tag_id").
-			 Where("user_category_tags.user_id = ?", id).
-			 Select("category_tags.*").
-			 Find(&tags)
-		println("tags",tags)
+		db.Model(&common.UserCategoryTag{}).
+			Joins("JOIN category_tags ON user_category_tags.tag_id = category_tags.tag_id").
+			Where("user_category_tags.user_id = ?", id).
+			Select("category_tags.*").
+			Find(&tags)
+		println("tags", tags)
 
 		//取得したユーザひとつひとつに対して、Profileの型に当てはめて格納
 		var profiles []common.Profile
