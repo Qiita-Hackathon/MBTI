@@ -1,7 +1,7 @@
 "use client";
 import { Layout } from "@/components/common/layout";
 import { Badge, Box, Card, HStack, Heading, Text } from "@yamada-ui/react";
-import { useState, type FC, useEffect } from "react";
+import { type FC, useEffect, useState } from "react";
 
 interface CategoryTag {
 	tagId: number;
