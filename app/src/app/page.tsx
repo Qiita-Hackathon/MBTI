@@ -1,4 +1,4 @@
-import { Layout } from "@/components/common/layout";
+// import { Layout } from "@/components/common/layout";
 import { Box, Heading, Text } from "@yamada-ui/react";
 import type { FC } from "react";
 
@@ -22,7 +22,8 @@ const mock_data = [
 
 const Home: FC = () => {
 	return (
-		<Layout>
+		// <Layout>
+		<>
 			{mock_data.map((item, index) => (
 				<Box key={`${index}-${item.userName}`} p={3}>
 					<Heading size="lg">{item.userName}</Heading>
@@ -39,7 +40,8 @@ const Home: FC = () => {
 					</Box>
 				</Box>
 			))}
-		</Layout>
+		</>
+		// </Layout>
 	);
 };
 
