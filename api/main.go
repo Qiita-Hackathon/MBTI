@@ -106,6 +106,8 @@ func main() {
 
 	r.POST("/api/auth/login", uHandler.LoginUser)
 
+	r.POST("/api/auth/verify", uHandler.VerifyToken)
+
 	// ユーザIDに対応するURLパラメータ
 
 	// サーバーを起動

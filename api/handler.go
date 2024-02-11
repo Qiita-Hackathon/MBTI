@@ -49,6 +49,16 @@ type LoginResponse struct {
 	Token  string `json:"token"`
 }
 
+// 認証用構造体*2
+type VerifyRequest struct {
+	UserId string `json:"userId"`
+	Token  string `json:"token"`
+}
+
+type VerifyResponse struct {
+	Authenticated bool `json:"authenticated"`
+}
+
 // ここからユーザ登録に関連するメソッド等の処理実装
 func generateToken() (string, error) {
 	bytes := make([]byte, 16) // 16バイトのランダムな値を生成
@@ -58,6 +68,7 @@ func generateToken() (string, error) {
 	return hex.EncodeToString(bytes), nil // バイト列を16進数の文字列に変換
 }
 
+// 今回はテーブルの設計からsha256を使用するが、セキュリティ的にDoSに弱いのでbcryptoが推奨されるらしい。bcryptoの内部実装は後確認。
 func hashPW(password string) (string, error) {
 	hash := sha256.Sum256([]byte(password))
 	hashStr := hex.EncodeToString(hash[:])
@@ -139,6 +150,7 @@ func (h *Handler) findUserByEmail(email string) (*User, error) {
 	return &user, nil
 }
 
+// ログイン処理のための関数
 func (h *Handler) LoginUser(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -171,12 +183,12 @@ func (h *Handler) LoginUser(c *gin.Context) {
 	expiryDate := time.Now().Add(2 * time.Hour)
 
 	// アクセストークンをデータベースに保存;一応通すように実装したけど保持しなくてもいいらしい(*内部で解決するので)
-	accessToken := AccessToken{
+	access_token := AccessToken{
 		UserID:     user.ID,
 		Token:      token,
 		ExpiryDate: expiryDate,
 	}
-	if err := h.db.Create(&accessToken).Error; err != nil {
+	if err := h.db.Create(&access_token).Error; err != nil {
 		c.SecureJSON(http.StatusInternalServerError, gin.H{"error": "トークンの保存に失敗しました"})
 		return
 	}
@@ -184,6 +196,34 @@ func (h *Handler) LoginUser(c *gin.Context) {
 		UserId: strconv.Itoa(int(user.ID)), // uintからstringへの変換
 		Token:  token,
 	})
+}
+
+// 認証処理のための関数
+func (h *Handler) VerifyToken(c *gin.Context) {
+	var req VerifyRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.SecureJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// ユーザーIDの形式をuintに変換
+	userId, err := strconv.ParseUint(req.UserId, 10, 32)
+	if err != nil {
+		c.SecureJSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	var access_token AccessToken
+	// トークンとユーザーIDでデータベースを検索
+	err = h.db.Where("user_id = ? AND token = ? AND expiry_date > ?", userId, req.Token, time.Now()).First(&access_token).Error
+	if err != nil {
+		// トークンが見つからないか、期限切れの場合
+		c.SecureJSON(http.StatusUnauthorized, VerifyResponse{Authenticated: false})
+		return
+	}
+
+	// トークンが有効な場合
+	c.SecureJSON(http.StatusOK, VerifyResponse{Authenticated: true})
 }
 
 // パラメータを利用してDBからユーザ情報を取得する関数
