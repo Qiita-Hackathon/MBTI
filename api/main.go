@@ -122,10 +122,13 @@ func main() {
 		//tag
 		//userid -- category_tag
 		var tags []common.CategoryTag
-		if err := db.Find(&tags).Error; err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error3": err.Error()})
-			return
-		}
+
+		 db.Model(&common.UserCategoryTag{}).
+			 Joins("JOIN category_tags ON user_category_tags.tag_id = category_tags.tag_id").
+			 Where("user_category_tags.user_id = ?", id).
+			 Select("category_tags.*").
+			 Find(&tags)
+		println("tags",tags)
 
 		//取得したユーザひとつひとつに対して、Profileの型に当てはめて格納
 		var profiles []common.Profile
@@ -135,7 +138,7 @@ func main() {
 			profile.UserName = user.UserName
 			profile.UserIcon = user.IconPath
 			profile.Mbti = mbti.MbtiName
-			// profile.CategoryTags =
+			profile.CategoryTags = tags
 			profiles = append(profiles, profile)
 		}
 

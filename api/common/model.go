@@ -75,6 +75,13 @@ type CategoryTag struct {
 	Users         []User `json:"users" gorm:"many2many:category_tag"`
 }
 
+// UserCategoryTag テーブルのモデル
+type UserCategoryTag struct {
+    UserTagID int `gorm:"primaryKey"`
+    UserID    int
+    TagID     int
+}
+
 type Profile struct {
 	Id           int           `json:"id" gorm:"primary_key"`
 	UserName     string        `json:"userName"`
