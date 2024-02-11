@@ -1,4 +1,3 @@
-import { Layout } from "@/components/common/layout";
 import { UIProvider } from "@yamada-ui/react";
 import { Inter } from "next/font/google";
 
@@ -17,9 +16,7 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<body className={inter.className}>
-				<UIProvider>
-					<Layout>{children}</Layout>
-				</UIProvider>
+				<UIProvider>{children}</UIProvider>
 			</body>
 		</html>
 	);
