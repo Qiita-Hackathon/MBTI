@@ -151,6 +151,31 @@ func main() {
 		c.JSON(http.StatusOK, response)
 	})
 
+	type likeRequestBody struct {
+		UserID int    `json:"userID"`
+		Token  string `json:"token"`
+	}
+	// 「いいね」を実行
+	r.POST("/api/like/:targetId", func(c *gin.Context) {
+		//パスパラメータを取得
+		targetId := c.Param("targetId")
+		// リクエストボディからデータをバインド
+		var requestBody likeRequestBody
+		if err := c.BindJSON(&requestBody); err != nil {
+			// エラーがあればエラーメッセージを返す
+			c.JSON(http.StatusBadRequest, gin.H{"json error": err.Error()})
+			return
+		}
+		println(targetId)
+		println(requestBody.UserID)
+		println(requestBody.Token)
+		// JSONレスポンスを返す
+		c.SecureJSON(http.StatusOK, gin.H{
+			"msg": "hello",
+			"is_match": true,
+		})
+	})
+
 	// ユーザ情報の処理を担うハンドラー(uhandler=user handler)
 	uHandler := newHandler(db)
 
