@@ -21,12 +21,15 @@ const Home: FC = () => {
 	const [profiles, setProfiles] = useState<Users[]>([]);
 
 	const firstFetch = async () => {
+		if (profiles.length > 0) {
+			return;
+		}
 		const response = await fetch(
 			"http://localhost:8080/api/profile/all?mbtiId=1",
 		);
-		const { profiles } = await response.json();
-		setProfiles(profiles);
-		console.log(profiles);
+		const { profiles: newProfiles } = await response.json();
+		setProfiles(newProfiles);
+		console.log(newProfiles);
 	};
 
 	useEffect(() => {
