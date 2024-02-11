@@ -107,8 +107,16 @@ func main() {
 	r.POST("/api/auth/login", uHandler.LoginUser)
 
 	r.POST("/api/auth/verify", uHandler.VerifyToken)
+	// トークルームを作成するハンドラー(rHandler = room handler)
+	rHandler := newHandler(db)
+	// トークルーム作成のエンドポイント
+	r.POST("/api/rooms/createroom", rHandler.CreateRoom)
 
-	// ユーザIDに対応するURLパラメータ
+	//	DM処理を担うハンドラー(dmHndler=the handler of DM process)
+	dmHandler := newHandler(db)
+	r.POST("/api/auth/messages", dmHandler.GetRooms)
+	r.POST("/api/auth/messages/:roomId", dmHandler.GetMessages)
+	r.POST("/api/auth/messages/send/:roomId", dmHandler.SendMessage)
 
 	// サーバーを起動
 	if err := r.Run(":" + goPort); err != nil {

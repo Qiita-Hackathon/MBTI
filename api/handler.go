@@ -59,6 +59,22 @@ type VerifyResponse struct {
 	Authenticated bool `json:"authenticated"`
 }
 
+// DM関連構造体
+type TalkRoom struct {
+	RoomID   uint      `gorm:"primaryKey;autoIncrement" json:"roomId"`
+	User1ID  uint      `gorm:"column:user1_id;not null" json:"user1Id"`
+	User2ID  uint      `gorm:"column:user2_id;not null" json:"user2Id"`
+	Messages []Message `gorm:"foreignKey:RoomID" json:"messages"`
+}
+
+type Message struct {
+	MessageID      uint   `gorm:"primaryKey;autoIncrement" json:"messageId"`
+	UserID         uint   `gorm:"column:user_id;not null" json:"userId"`
+	RoomID         uint   `gorm:"column:room_id;not null" json:"roomId"`
+	MessageContent string `gorm:"column:message_content;not null" json:"messageContent"`
+	// CreatedAtフィールドは自動設定されるから、手動での設定はしなくていい!
+}
+
 // ここからユーザ登録に関連するメソッド等の処理実装
 func generateToken() (string, error) {
 	bytes := make([]byte, 16) // 16バイトのランダムな値を生成
@@ -224,6 +240,93 @@ func (h *Handler) VerifyToken(c *gin.Context) {
 
 	// トークンが有効な場合
 	c.SecureJSON(http.StatusOK, VerifyResponse{Authenticated: true})
+}
+
+// トークルーム作成関数
+func (h *Handler) CreateRoom(c *gin.Context) {
+	// リクエストボディを文字列として受け取るための構造体を定義
+	var req struct {
+		User1ID string `json:"user1Id"`
+		User2ID string `json:"user2Id"`
+	}
+
+	// JSONを構造体にバインド
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.SecureJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 文字列をuintに変換
+	user1Id, err1 := strconv.ParseUint(req.User1ID, 10, 32)
+	user2Id, err2 := strconv.ParseUint(req.User2ID, 10, 32)
+	if err1 != nil || err2 != nil {
+		c.SecureJSON(http.StatusBadRequest, gin.H{"error": "ユーザーIDの形式が不正です"})
+		return
+	}
+
+	// Room構造体のインスタンスを作成
+	talk_room := TalkRoom{
+		User1ID: uint(user1Id),
+		User2ID: uint(user2Id),
+	}
+
+	// データベースにRoomを保存
+	if err := h.db.Create(&talk_room).Error; err != nil {
+		c.SecureJSON(http.StatusInternalServerError, gin.H{"error": "ルームの作成に失敗しました"})
+		return
+	}
+
+	// 成功レスポンスを送信
+	c.SecureJSON(http.StatusOK, gin.H{"message": "ルームを作成しました", "roomId": talk_room.RoomID})
+}
+
+// DM一覧取得関数
+func (h *Handler) GetMessages(c *gin.Context) {
+	var talk_rooms []TalkRoom
+	userID, _ := strconv.ParseUint(c.Query("userId"), 10, 32) // ユーザーIDのパース
+
+	err := h.db.Where("user1_id = ? OR user2_id = ?", userID, userID).Preload("Messages").Find(&talk_rooms).Error
+	if err != nil {
+		c.SecureJSON(http.StatusInternalServerError, gin.H{"error": "トークルームの取得に失敗しました。"})
+		return
+	}
+
+	c.SecureJSON(http.StatusOK, gin.H{"talk_rooms": talk_rooms})
+}
+
+// DM一覧取得
+func (h *Handler) GetRooms(c *gin.Context) {
+	userID, _ := strconv.ParseUint(c.Query("userId"), 10, 32) // ユーザーIDのパース
+
+	var talk_rooms []TalkRoom
+	if err := h.db.Where("user1_id = ? OR user2_id = ?", userID, userID).Find(&talk_rooms).Error; err != nil {
+		c.SecureJSON(http.StatusInternalServerError, gin.H{"error": "ルームの取得に失敗しました。"})
+		return
+	}
+
+	c.SecureJSON(http.StatusOK, gin.H{"talk_rooms": talk_rooms})
+}
+
+// DM送信
+func (h *Handler) SendMessage(c *gin.Context) {
+	roomID, err := strconv.ParseUint(c.Param("roomId"), 10, 32)
+	if err != nil {
+		c.SecureJSON(http.StatusBadRequest, gin.H{"error": "無効なルームID"})
+		return
+	}
+	var message Message
+	if err := c.ShouldBindJSON(&message); err != nil {
+		c.SecureJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	message.RoomID = uint(roomID) // uint64からuintへの型変換を明示的に行う
+	if err := h.db.Create(&message).Error; err != nil {
+		c.SecureJSON(http.StatusInternalServerError, gin.H{"error": "メッセージの送信に失敗しました。"})
+		return
+	}
+
+	c.SecureJSON(http.StatusOK, gin.H{"message": "メッセージが送信されました。"})
 }
 
 // パラメータを利用してDBからユーザ情報を取得する関数

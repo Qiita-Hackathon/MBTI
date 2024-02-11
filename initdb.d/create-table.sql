@@ -78,3 +78,27 @@ CREATE TABLE replies (
     FOREIGN KEY (post_id) REFERENCES posts(post_id),
     FOREIGN KEY (parent_reply_id) REFERENCES replies(reply_id)
 );
+
+-- talk_roomsテーブル
+CREATE TABLE `talk_rooms` (
+  `room_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user1_id` BIGINT UNSIGNED NOT NULL,
+  `user2_id` BIGINT UNSIGNED NOT NULL,
+  PRIMARY KEY (`room_id`),
+  FOREIGN KEY (`user1_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`user2_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  UNIQUE KEY `unique_room` (`user1_id`, `user2_id`)
+);
+
+-- talk_messagesテーブル
+CREATE TABLE `talk_messages` (
+  `message_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `room_id` BIGINT UNSIGNED NOT NULL,
+  `message_content` VARCHAR(255) NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`message_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`room_id`) REFERENCES `talk_rooms` (`room_id`) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
