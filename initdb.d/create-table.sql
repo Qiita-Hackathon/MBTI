@@ -79,28 +79,48 @@ CREATE TABLE replies (
     FOREIGN KEY (parent_reply_id) REFERENCES replies(reply_id)
 );
 
+-- category_tagsの管理テーブル
+create table category_tags (
+    tag_id int primary key auto_increment,
+    category_group varchar(255) not null,
+    tag_name varchar(255) unique not null
+);
+
+-- category_tagsの初期データ追加
+insert into category_tags (category_group, tag_name) values
+('hobby', 'music'),
+('hobby', 'movie'),
+('hobby', 'book'),
+('worries','friend'),
+('worries', 'work'),
+('worries', 'family');
+
+-- user_tagsの管理テーブル
+create table user_tags (
+    user_tag_id longint primary key auto_increment,
+    user_id longint foreign key references users(user_id),
+    tag_id int  foreign key references category_tags(tag_id)
+);
+
+/* -- user_tagsの初期データ追加
+insert into user_tags (user_id, tag_id) values
+(1, 1),
+(1, 2),
+(2, 1),
+(2, 2),
+(3, 1),
+(3, 2);
+
  -- MBTIの管理テーブル
- create table mbti (
+create table mbtis (
     mbti_id int primary key auto_increment,
     mbti_name varchar(255) not null,
     mbti_description varchar(255) not null
- );
+); */
 
 -- MBTIの初期データ追加
-insert into mbti (mbti_name, mbti_description) values
+insert into mbtis (mbti_name, mbti_description) values
 ('ISTJ', '真面目で責任感が強く、堅実な性格。'),
 ('ISFJ', '控えめで思いやりがあり、忠実な性格。'),
 ('INFJ', '理想主義者で、独創的で人に思いやりがある。'),
-('INTJ', '独創的で、自分の考えを大切にする。'),
-('ISTP', '冷静で論理的で、現実的な性格。'),
-('ISFP', '控えめで、繊細で、忠実な性格。'),
-('INFP', '理想主義者で、独創的で、人に思いやりがある。'),
-('INTP', '独創的で、論理的で、冷静な性格。'),
-('ESTP', '冒険好きで、現実的で、論理的な性格。'),
-('ESFP', '楽天的で、快活で、人に思いやりがある。'),
-('ENFP', '理想主義者で、独創的で、人に思いやりがある。'),
-('ENTP', '独創的で、論理的で、冷静な性格。'),
-('ESTJ', '実直で、責任感が強く、堅実な性格。'),
-('ESFJ', '社交的で、忠実で、思いやりがある。'),
-('ENFJ', '理想主義者で、独創的で、人に思いやりがある。'),
-('ENTJ', 'リーダーシップがあり、自分の考えを大切にする。');
+('INTJ', '独創的で、自分の考えを大切にする。');
