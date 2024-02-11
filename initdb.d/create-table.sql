@@ -78,3 +78,51 @@ CREATE TABLE replies (
     FOREIGN KEY (post_id) REFERENCES posts(post_id),
     FOREIGN KEY (parent_reply_id) REFERENCES replies(reply_id)
 );
+
+-- category_tagsの管理テーブル
+create table category_tags (
+    tag_id int primary key auto_increment,
+    category_group varchar(255) not null,
+    tag_name varchar(255) unique not null
+);
+
+-- category_tagsの初期データ追加
+insert into category_tags (category_group, tag_name) values
+('hobby', 'music'),
+('hobby', 'movie'),
+('hobby', 'book'),
+('worries','friend'),
+('worries', 'work'),
+('worries', 'family');
+
+-- user_tagsの管理テーブル
+CREATE TABLE user_category_tags (
+    user_tag_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    tag_id INT,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (tag_id) REFERENCES category_tags(tag_id)
+);
+
+-- user_tagsの初期データ追加
+insert into user_category_tags (user_id, tag_id) values
+(1, 1),
+(1, 2),
+(2, 1),
+(2, 2),
+(3, 1),
+(3, 2);
+
+ -- MBTIの管理テーブル
+create table mbtis (
+    mbti_id int primary key auto_increment,
+    mbti_name varchar(255) not null,
+    mbti_description varchar(255) not null
+);
+
+-- MBTIの初期データ追加
+insert into mbtis (mbti_name, mbti_description) values
+('ISTJ', '真面目で責任感が強く、堅実な性格。'),
+('ISFJ', '控えめで思いやりがあり、忠実な性格。'),
+('INFJ', '理想主義者で、独創的で人に思いやりがある。'),
+('INTJ', '独創的で、自分の考えを大切にする。');

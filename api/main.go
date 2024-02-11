@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"main/common"
 	"net/http"
 	"os" // 環境変数を読み込むために必要
+	"strconv"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -87,7 +89,7 @@ func main() {
 
 	//get all user
 	r.GET("/users", func(c *gin.Context) {
-		var users []User
+		var users []common.User
 		db.Find(&users)
 		if err := db.Find(&users).Error; err != nil {
 			c.AbortWithStatus(404)
@@ -99,10 +101,64 @@ func main() {
 		}
 	})
 
+	//get all profile
+	//api/profile/all?mbtiId=1
+	r.GET("/api/profile/all", func(c *gin.Context) {
+		//idパラメータから取得
+		mbtiId := c.Query("mbtiId")
+
+		//stringのmbtiに変換
+		id, _ := strconv.Atoi(mbtiId)
+
+		var mbti common.Mbti
+		if err := db.Where("mbti_id = ?", id).First(&mbti).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error1": err.Error()})
+			return
+		}
+		// user.mbti = id のものを全件取得する
+		var users []common.User
+		if err := db.Where("mbti = ?", id).Find(&users).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error2": err.Error()})
+			return
+		}
+
+		//tag
+		//userid -- category_tag
+		var tags []common.CategoryTag
+
+		db.Model(&common.UserCategoryTag{}).
+			Joins("JOIN category_tags ON user_category_tags.tag_id = category_tags.tag_id").
+			Where("user_category_tags.user_id = ?", id).
+			Select("category_tags.*").
+			Find(&tags)
+		println("tags", tags)
+
+		//取得したユーザひとつひとつに対して、Profileの型に当てはめて格納
+		var profiles []common.Profile
+		for _, user := range users {
+			var profile common.Profile
+			profile.Id = user.UserId
+			profile.UserName = user.UserName
+			profile.UserIcon = user.IconPath
+			profile.Mbti = mbti.MbtiName
+			profile.CategoryTags = tags
+			profiles = append(profiles, profile)
+		}
+
+		var response common.GetProfileAllResponse
+		response.Profiles = profiles
+		//レスポンスで返す
+		c.JSON(http.StatusOK, response)
+	})
+
 	// ユーザ情報の処理を担うハンドラー(uhandler=user handler)
 	uHandler := newHandler(db)
 
 	r.POST("/api/auth/register", uHandler.RegisterUser)
+
+	r.POST("/api/auth/login", uHandler.LoginUser)
+
+	r.POST("/api/auth/verify", uHandler.VerifyToken)
 
 	// ユーザIDに対応するURLパラメータ
 
