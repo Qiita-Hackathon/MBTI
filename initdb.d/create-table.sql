@@ -95,21 +95,23 @@ insert into category_tags (category_group, tag_name) values
 ('worries', 'work'),
 ('worries', 'family');
 
-/* -- user_tagsの管理テーブル
-create table user_tags (
-    user_tag_id longint primary key auto_increment,
-    user_id longint foreign key references users(user_id),
-    tag_id int  foreign key references category_tags(tag_id)
+-- user_tagsの管理テーブル
+CREATE TABLE user_category_tags (
+    user_tag_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    tag_id INT,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (tag_id) REFERENCES category_tags(tag_id)
 );
 
 -- user_tagsの初期データ追加
-insert into user_tags (user_id, tag_id) values
+insert into user_category_tags (user_id, tag_id) values
 (1, 1),
 (1, 2),
 (2, 1),
 (2, 2),
 (3, 1),
-(3, 2); */
+(3, 2);
 
  -- MBTIの管理テーブル
 create table mbtis (
