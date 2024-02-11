@@ -1,9 +1,9 @@
-import { IoHomeOutline } from "react-icons/io5";
-import { MdMessage } from "react-icons/md";
-import { IoMdLogOut } from "react-icons/io";
-import { CiSettings } from "react-icons/ci";
 import { Box, Button, HStack, IconButton, VStack } from "@yamada-ui/react";
 import type { FC, ReactNode } from "react";
+import { CiSettings } from "react-icons/ci";
+import { IoMdLogOut } from "react-icons/io";
+import { IoHomeOutline } from "react-icons/io5";
+import { MdMessage } from "react-icons/md";
 
 interface LayoutProps {
 	children: ReactNode;
