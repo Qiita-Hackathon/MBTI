@@ -3,22 +3,25 @@ SET CHARACTER SET utf8mb4;
 
 -- ユーザーテーブル
 create table users (
-    id int auto_increment primary key, -- id（主キー）
-    user_name varchar(255) not null unique, -- ユーザー名（一意キーにしても良い）
-    display_name varchar(255) not null, -- ユーザー名（一意キーにしても良い）
+    user_id int auto_increment primary key, -- id（主キー）
+    user_name varchar(255) not null, -- ユーザー名（一意キーにしても良い）
     email varchar(255) not null unique, -- メールアドレス（同じく一意キーにしても良い）
     password varchar(255) not null, -- パスワード（ハッシュ化してもそのままでも良し）
-    description varchar(255) default '', -- 説明
-    icon_path varchar(255) default '' -- アイコン画像のパス
+    age int not null,
+    gender int not null,
+    occupation varchar(255) default '',
+    self_introduction varchar(255) default '',
+    icon_path varchar(255) default '', -- アイコン画像のパス
+    mbti int not null
 );
 
 -- ユーザーの初期データ追加
-insert into users (user_name, display_name, email, password, icon_path) values 
-('Yusuke', 'ユースケ', 'tanaka@email.com', SHA2('password', 256), ''), -- パスワードをハッシュ化して保存
-('toku', 'とく', 'toto@email.com', SHA2('password', 256), '/public/image/2.png'), -- アイコンのURL保存する場合
-('Umi', '海', 'umiumi@email.com', SHA2('password', 256), ''),
-('Lucky', 'Lucky', 'Lucky@email.com', SHA2('password', 256), ''),
-('Kazuki', '一樹', 'kazu@email.com', SHA2('password', 256), '');
+insert into users (user_name, email, password, age, gender, mbti) values
+('Yusuke', 'tanaka@email.com', SHA2('password', 256), 25, 1, 1),
+('toku', 'takeda@email.com', SHA2('password', 256), 25, 1, 1),
+('Umi',  'satou@email.com', SHA2('password', 256), 25, 1, 0),
+('Lucky', 'asou@email.com', SHA2('password', 256), 25, 1, 0),
+('Kazuki', 'minami@email.com', SHA2('password', 256), 25, 1, 1);
 
 -- アクセストークンの管理テーブル
 CREATE TABLE access_tokens (
@@ -26,7 +29,7 @@ CREATE TABLE access_tokens (
     token VARCHAR(255) NOT NULL,
     user_id INT NOT NULL,
     expiry_date DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
 -- 投稿の管理テーブル
@@ -40,7 +43,7 @@ CREATE TABLE posts (
     reply_count INT DEFAULT 0,
     created_at DATETIME NOT NULL,
     is_deleted BOOLEAN NOT NULL DEFAULT 0,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
 -- いいねの管理テーブル
@@ -49,7 +52,7 @@ CREATE TABLE likes (
     user_id INT NOT NULL,
     post_id INT NOT NULL,
     created_at DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (post_id) REFERENCES posts(post_id)
 );
 
@@ -59,7 +62,7 @@ CREATE TABLE reposts (
     user_id INT NOT NULL,
     post_id INT NOT NULL,
     created_at DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (post_id) REFERENCES posts(post_id)
 );
 
@@ -71,7 +74,55 @@ CREATE TABLE replies (
     parent_reply_id INT, -- 親リプライのID
     reply_text TEXT NOT NULL,
     created_at DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (post_id) REFERENCES posts(post_id),
     FOREIGN KEY (parent_reply_id) REFERENCES replies(reply_id)
 );
+
+-- category_tagsの管理テーブル
+create table category_tags (
+    tag_id int primary key auto_increment,
+    category_group varchar(255) not null,
+    tag_name varchar(255) unique not null
+);
+
+-- category_tagsの初期データ追加
+insert into category_tags (category_group, tag_name) values
+('hobby', 'music'),
+('hobby', 'movie'),
+('hobby', 'book'),
+('worries','friend'),
+('worries', 'work'),
+('worries', 'family');
+
+-- user_tagsの管理テーブル
+CREATE TABLE user_category_tags (
+    user_tag_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    tag_id INT,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (tag_id) REFERENCES category_tags(tag_id)
+);
+
+-- user_tagsの初期データ追加
+insert into user_category_tags (user_id, tag_id) values
+(1, 1),
+(1, 2),
+(2, 1),
+(2, 2),
+(3, 1),
+(3, 2);
+
+ -- MBTIの管理テーブル
+create table mbtis (
+    mbti_id int primary key auto_increment,
+    mbti_name varchar(255) not null,
+    mbti_description varchar(255) not null
+);
+
+-- MBTIの初期データ追加
+insert into mbtis (mbti_name, mbti_description) values
+('ISTJ', '真面目で責任感が強く、堅実な性格。'),
+('ISFJ', '控えめで思いやりがあり、忠実な性格。'),
+('INFJ', '理想主義者で、独創的で人に思いやりがある。'),
+('INTJ', '独創的で、自分の考えを大切にする。');
