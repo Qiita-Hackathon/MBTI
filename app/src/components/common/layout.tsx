@@ -2,7 +2,7 @@ import { IoHomeOutline } from "react-icons/io5";
 import { MdMessage } from "react-icons/md";
 import { IoMdLogOut } from "react-icons/io";
 import { CiSettings } from "react-icons/ci";
-import { Box, Button, HStack, IconButton, VStack } from "@yamada-ui/react";
+import { Box, IconButton, VStack } from "@yamada-ui/react";
 import type { FC, ReactNode } from "react";
 
 interface LayoutProps {
@@ -12,7 +12,7 @@ interface LayoutProps {
 export const Layout: FC<LayoutProps> = ({ children }) => {
 	return (
 		<>
-			<HStack
+			{/* <HStack
 				position="absolute"
 				top={0}
 				justify="center"
@@ -23,7 +23,7 @@ export const Layout: FC<LayoutProps> = ({ children }) => {
 			>
 				<Button colorScheme="amber">MTBI情報</Button>
 				<Button>タグ絞り込み</Button>
-			</HStack>
+			</HStack> */}
 			<VStack
 				position="absolute"
 				top={0}
